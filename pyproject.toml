@@ -1,0 +1,33 @@
+[project]
+name = "pydto"
+version = "1.0"
+description = "Data Transfer Object python, JSON, and YAML datastructures"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = ["dto", "Data Transfer Object", "Data", "Transfer", "Object"]
+authors = [
+    { name = "Chad Hyer", email = "chadhyer92@gmail.com" }
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10"
+]
+dependencies = [
+    "jsonschema",
+    "pyyaml"
+]
+
+[project.optional-dependencies] 
+test = [
+    "pytest",
+    "ruff"
+]
+
+[tool.pytest.ini_options]
+pythonpath = [
+  ".",
+  "src"
+]
+
+[project.urls]
+repository = "https://github.com/chadhyer/pydto"
