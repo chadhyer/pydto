@@ -4,6 +4,7 @@ from dto import DTO
 
 from jsonschema.exceptions import ValidationError
 
+# Example Class that extends DTO for tests
 class ExampleClass(DTO):
     def __init__(self, d: dict | str | None = None, **kwargs) -> None:
         s = {
@@ -20,7 +21,10 @@ class ExampleClass(DTO):
         super().__init__(d, s, **kwargs)
 
 parameters = ["input_","output_"]
-# Test data, json, yaml method output
+# Test data input / output for DTO
+# Ensure DTO constructed with python dict, json string, yaml string
+# and python dict (as a string) constructs the object instance consistently
+# with python dict, json, and yaml outputs being consistent too
 expected_output = [
     {'a': [1], 'b': True, 'i': 0, 'o': {'f': 'f'}, 's': 'string'},
     '{"a": [1], "b": true, "i": 0, "o": {"f": "f"}, "s": "string"}',
@@ -35,9 +39,9 @@ s: string
 ]
 tests = [
     ({'a':[1],'b':True,'i':0,'o':{'f':'f'},'s':'string'},
-    expected_output),
+    expected_output), # init object with python dict
     ('{"a": [1], "b": true, "i": 0, "o": {"f": "f"}, "s": "string"}',
-    expected_output),
+    expected_output), # init object with json string
     ('''a:
 - 1
 b: true
@@ -45,10 +49,11 @@ i: 0
 o:
   f: f
 s: string
-''', expected_output),
+''', expected_output), # init object with yaml string
     ("{'a':[1],'b':True,'i':0,'o':{'f':'f'},'s':'string'}",
-    expected_output)
+    expected_output) # init object with python dict from string
 ]
+# data input / output test function
 @pytest.mark.parametrize(", ".join(parameters), tests)
 def test_DataTransferObject_data_json_yaml_output(input_, output_):
     test_class = ExampleClass(input_)
@@ -56,70 +61,70 @@ def test_DataTransferObject_data_json_yaml_output(input_, output_):
     assert test_class.json() == output_[1]
     assert test_class.yaml() == output_[2]
 
-# Test exception
+# Test DTO exceptions
 value_error = 'Valid python dictionary or JSON/YAML formatted string required!'
 tests = [
     ({'b':True,'i':0,'o':{'f':'f'},'s':'string'},
-    [ValidationError,"'a' is a required property"]),
+    [ValidationError,"'a' is a required property"]), # py dict missing key a
     ('{"b":true,"i":0,"o":{"f":"f"},"s":"string"}',
-    [ValidationError,"'a' is a required property"]),
+    [ValidationError,"'a' is a required property"]), # json missing key a
     ('''b: true
 i: 0
 o:
   f: f
-s: string''', [ValidationError,"'a' is a required property"]),
+s: string''', [ValidationError,"'a' is a required property"]), # yaml missing key a
     ({'a':[1,2,3],'i':0,'o':{'f':'f'},'s':'string'},
-    [ValidationError,"'b' is a required property"]),
+    [ValidationError,"'b' is a required property"]), # py dict missing key b
     ('{"a":[1,2,3],"i":0,"o":{"f":"f"},"s":"string"}',
-    [ValidationError,"'b' is a required property"]),
+    [ValidationError,"'b' is a required property"]), # json missing key b
     ('''a:
 - 1
 i: 0
 o:
   f: f
-s: string''', [ValidationError,"'b' is a required property"]),
+s: string''', [ValidationError,"'b' is a required property"]), # yaml missing key b
     ({'a':[1,2,3],'b':True,'o':{'f':'f'},'s':'string'},
-    [ValidationError,"'i' is a required property"]),
+    [ValidationError,"'i' is a required property"]), # py dict missing key i
     ('{"a":[1,2,3],"b":true,"o":{"f":"f"},"s":"string"}',
-    [ValidationError,"'i' is a required property"]),
+    [ValidationError,"'i' is a required property"]), # json missing key i
     ('''a:
 - 1
 b: true
 o:
   f: f
-s: string''', [ValidationError,"'i' is a required property"]),
+s: string''', [ValidationError,"'i' is a required property"]), # yaml missing key i
     ({'a':[1,2,3],'b':True,'i':0,'s':'string'},
-        [ValidationError,"'o' is a required property"]),
+        [ValidationError,"'o' is a required property"]), # py dict missing key o
     ('{"a":[1,2,3],"b":true,"i":0,"s":"string"}',
-        [ValidationError,"'o' is a required property"]),
+        [ValidationError,"'o' is a required property"]), # json missing key o
     ('''a:
 - 1
 b: true
 i: 0
-s: string''', [ValidationError,"'o' is a required property"]),
+s: string''', [ValidationError,"'o' is a required property"]), # yaml missing key o
     ({'a':[1,2,3],'b':True,'i':0,'o':{'f':'f'}},
-        [ValidationError,"'s' is a required property"]),
+        [ValidationError,"'s' is a required property"]), # py dict missing key s
     ('{"a":[1,2,3],"b":true,"i":0,"o":{"f":"f"}}',
-        [ValidationError,"'s' is a required property"]),
+        [ValidationError,"'s' is a required property"]), # json missing key s
     ('''a:
 - 1
 b: true
 i: 0
 o:
-  f: f''', [ValidationError,"'s' is a required property"]),
+  f: f''', [ValidationError,"'s' is a required property"]), # yaml missing key s
     ("{a:[1,2,3],b:True,i:0,o:{f:f},s:string}",
-    (ValidationError,"'b' is a required property")),
+    (ValidationError,"'b' is a required property")), # improper dict as stirng causes keys after a to be ignored
     ({'a':1,'b':True,'i':0,'o':{'f':'f'},'s':'string'},
-    (ValidationError,"1 is not of type 'array'")),
+    (ValidationError,"1 is not of type 'array'")), # dict -> int not array/list
     ('''a: 1
 b: true
 i: 0
 o:
   f: f
 s: s
-''', (ValidationError,"1 is not of type 'array'")),
+''', (ValidationError,"1 is not of type 'array'")), # yaml -> int not array/list
     ({'a':[1,2,3],'b':1,'i':0,'o':{'f':'f'},'s':'string'},
-    (ValidationError,"1 is not of type 'boolean'")),
+    (ValidationError,"1 is not of type 'boolean'")), # dict -> int not bool
     ('''a:
 - 1
 b: 1
@@ -127,9 +132,9 @@ i: 0
 o:
   f: f
 s: s
-''', (ValidationError,"1 is not of type 'boolean'")),
+''', (ValidationError,"1 is not of type 'boolean'")), # yaml -> int not bool
     ({'a':[1,2,3],'b':True,'i':'1','o':{'f':'f'},'s':'string'},
-    (ValidationError,"'1' is not of type 'integer'")),
+    (ValidationError,"'1' is not of type 'integer'")), # dict -> str not int
     ('''a:
 - 1
 b: true
@@ -137,19 +142,18 @@ i: '1'
 o:
   f: f
 s: s
-''', (ValidationError,"'1' is not of type 'integer'")
-    ),
+''', (ValidationError,"'1' is not of type 'integer'")), # yaml -> str not int
     ({'a':[1,2,3],'b':True,'i':0,'o':1,'s':'string'},
-    (ValidationError,"1 is not of type 'object'")),
+    (ValidationError,"1 is not of type 'object'")), # dict -> int not obj (DTO)
     ('''a:
 - 1
 b: true
 i: 1
 o: 1
 s: s
-''', (ValidationError,"1 is not of type 'object'")),
+''', (ValidationError,"1 is not of type 'object'")), # yaml -> int not obj (DTO)
     ({'a':[1,2,3],'b':True,'i':0,'o':{'f':'f'},'s':1},
-    (ValidationError,"1 is not of type 'string'")),
+    (ValidationError,"1 is not of type 'string'")), # dict -> int not str
     ('''a:
 - 1
 b: true
@@ -157,15 +161,15 @@ i: 1
 o:
   f:
 s: 1
-''', (ValidationError,"1 is not of type 'string'")),
+''', (ValidationError,"1 is not of type 'string'")), # yaml -> int not str
     ('''a:1
 b:true
 i:0
 o:
 s:s
-'''
-        "'a':[1,2,3],'b':True,'i':0,'o':{'f':'f'},'s':1",
-        (ValueError,value_error)),
+''', (ValueError,value_error)), # yaml format issue (no space between : and value)
+    ("'a':[1,2,3],'b':True,'i':0,'o':{'f':'f'},'s':1",
+    (ValueError,value_error)), # dict string missing {}
     ('''a:,
 - 1
 - 2
@@ -175,9 +179,9 @@ i: 0
 o:
   f: f
 s: string
-''', (ValueError,value_error)),
+''', (ValueError,value_error)), # yaml input has format issue with key a
     ('a:[1,2,3],b:True,i:0,o:{f:f},s:s',
-    (ValueError,value_error)),
+    (ValueError,value_error)), # dict string missing {}
 ]
 @pytest.mark.parametrize(", ".join(parameters), tests)
 def test_DataTransferObject_error(input_, output_):
@@ -187,6 +191,7 @@ def test_DataTransferObject_error(input_, output_):
     assert exception.value.args[0] == output_[1]
 
 
+# Test nested DTO objects
 class ChildExampleClass(DTO):
     def __init__(self, d: dict | str | None = None, **kwargs) -> None:
         s = {
